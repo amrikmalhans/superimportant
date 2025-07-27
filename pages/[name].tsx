@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { motion, PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { Heart, X, MapPin, Clock, Users, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Users, ArrowLeft } from 'lucide-react';
 import { theme } from '../styles/theme';
 
 interface DateOption {
@@ -18,56 +18,66 @@ interface DateOption {
 }
 
 const dateOptions: DateOption[] = [
-  {
-    id: 1,
-    title: "Cozy Coffee Date",
-    description: "Perfect first date at a charming local café",
-    location: "Downtown Coffee Co.",
-    duration: "1-2 hours",
-    people: "2 people",
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop",
-    category: "Casual"
-  },
-  {
-    id: 2,
-    title: "Sunset Beach Walk",
-    description: "Romantic stroll along the shoreline",
-    location: "Santa Monica Beach",
-    duration: "2-3 hours",
-    people: "2 people",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-    category: "Outdoor"
-  },
-  {
-    id: 3,
-    title: "Art Gallery Tour",
-    description: "Explore contemporary art together",
-    location: "LACMA",
-    duration: "3-4 hours",
-    people: "2 people",
-    image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=300&fit=crop",
-    category: "Cultural"
-  },
-  {
-    id: 4,
-    title: "Food Truck Adventure",
-    description: "Taste the city's best street food",
-    location: "Grand Central Market",
-    duration: "2-3 hours",
-    people: "2 people",
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-    category: "Food"
-  },
-  {
-    id: 5,
-    title: "Rooftop Bar & Views",
-    description: "Drinks with stunning city skyline",
-    location: "Perch LA",
-    duration: "2-3 hours",
-    people: "2 people",
-    image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop",
-    category: "Nightlife"
-  }
+        {
+          "id": 1,
+          "title": "Coffee & Walk in Old Montreal",
+          "description": "Let's just keep it simple and go to Café Parvis eh? No pressure, just chill - get our iced lattes and talk about the meaning of life (or your favorite LEGO set)",
+          "location": "Café Parvis",
+          "duration": "1-2 hours",
+          "people": "2 people",
+          "image": "https://uoubfkdsc2yugclb.public.blob.vercel-storage.com/Screenshot%202025-07-27%20at%2013.06.28.png",
+          "category": "Casual"
+        },
+        {
+            "id": 10,
+            "title": "Vinyl Shop + Listening Sesh with Amrik",
+            "description": "Amrik's too lazy to go get a Vinyl for his new apartment, perhaps this date could be a perfect excuse for you and him to get one, and browser and buy bunch of records that you think he should definitely vibe to. As a bonus, he'll make you a iced latte himself (he's a coffee snob)",
+            "location": "Aux 33 Tours",
+            "duration": "1-2 hours",
+            "people": "2 people",
+            "image": "https://uoubfkdsc2yugclb.public.blob.vercel-storage.com/Screenshot%202025-07-27%20at%2013.08.08.png",
+            "category": "Cozy"
+          },
+        {
+          "id": 3,
+          "title": "Mount Royal Sunset Picnic",
+          "description": "Ahhh the classic, let's just go to a park and watch the sunset. Bring a bottle of wine and some snacks, and just chill and talk about life you know how this goes...",
+          "location": "Mount Royal Lookout",
+          "duration": "1-2 hours",
+          "people": "2 people",
+          "image": "https://uoubfkdsc2yugclb.public.blob.vercel-storage.com/Screenshot%202025-07-27%20at%2013.09.05.png",
+          "category": "Scenic"
+        },
+        {
+          "id": 7,
+          "title": "Drinks & Chill at Parc Laurier",
+          "description": "Wait another Parc? I know you're not a fan of this, but it's a classic, and you know how this goes. Just go, and enjoy the vibes.",
+          "location": "Parc Laurier, Plateau",
+          "duration": "1-2 hours",
+          "people": "2 people",
+          "image": "https://uoubfkdsc2yugclb.public.blob.vercel-storage.com/Screenshot%202025-07-27%20at%2013.11.07.png",
+          "category": "Chill"
+        },
+        {
+            "id": 8,
+            "title": "Music & Iced Lattes at Home",
+            "description": "Amrik recently got into music...and he's been playing guitar and thinks he's got enough balls to play and sing for you (don't get your hopes high he kinda sucks at it), but you'll get a free iced latte from him (he's a coffee snob) and see some sick art he's got at his place!",
+            "location": "Amrik's place",
+            "duration": "1-2 hours",
+            "people": "2 people",
+            "image": "https://uoubfkdsc2yugclb.public.blob.vercel-storage.com/IMG_5578.jpg",
+            "category": "Cozy"
+          },
+          {
+            "id": 9,
+            "title": "Thrifting + Coffee/Food Hangout",
+            "description": "So you're into fashion and vintage stuff too? You also love spending money that you definitely don't have? Well, this is the date for you! We'll hit up a local thrift store or vintage spot, browse fits (and maybe try some on for laughs), then grab coffee or a quick bite after...",
+            "location": "Mile End / Plateau thrift shops",
+            "duration": "1-2 hours",
+            "people": "2 people",
+            "image": "https://uoubfkdsc2yugclb.public.blob.vercel-storage.com/Screenshot%202025-07-27%20at%2013.12.31.png",
+            "category": "Fun"
+          },
 ];
 
 function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (rating: number) => void; index: number }) {
@@ -130,20 +140,22 @@ function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (r
       
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-2">{date.title}</h3>
-        <p className="text-gray-600 mb-4">{date.description}</p>
+        <p className="text-xs text-gray-600 mb-4 leading-relaxed">{date.description}</p>
         
         <div className="space-y-2 mb-6">
-          <div className="flex items-center text-sm text-gray-500">
-            <MapPin className="w-4 h-4 mr-2" />
+          <div className="flex items-center text-xs text-gray-500">
+            <MapPin className="w-3 h-3 mr-1" />
             {date.location}
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <Clock className="w-4 h-4 mr-2" />
-            {date.duration}
-          </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <Users className="w-4 h-4 mr-2" />
-            {date.people}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-xs text-gray-500">
+              <Clock className="w-3 h-3 mr-1" />
+              {date.duration}
+            </div>
+            <div className="flex items-center text-xs text-gray-500">
+              <Users className="w-3 h-3 mr-1" />
+              {date.people}
+            </div>
           </div>
         </div>
 
@@ -200,11 +212,11 @@ function DateSlider({ onSwipe, swipeRating, onSliderInteraction }: {
   }, [rating]);
 
   const getRatingLabel = (value: number) => {
-    if (value < 20) return "Not for me";
+    if (value < 20) return "Jesus tf?";
     if (value < 40) return "Maybe";
-    if (value < 60) return "Sounds fun";
-    if (value < 80) return "Love it!";
-    return "Absolutely!";
+    if (value < 60) return "Alrighty";
+    if (value < 80) return "Oh Yeah Love it!";
+    return "LFGGGGGGGGGG!!!!";
   };
 
   const getRatingColor = (value: number) => {
@@ -236,7 +248,7 @@ function DateSlider({ onSwipe, swipeRating, onSliderInteraction }: {
           {getRatingLabel(debouncedRating)}
         </div>
         <div className="text-sm text-gray-500">
-          How likely are you to try this date?
+          How much you fuck with this idea?
         </div>
       </div>
 
@@ -326,41 +338,39 @@ export default function PersonalDatePage() {
   };
 
   if (currentIndex >= dateOptions.length) {
-    const topRatedDates = ratedDates
-      .filter(item => item.rating >= 70)
-      .sort((a, b) => b.rating - a.rating);
-
-    // Debug: Log all ratings to see what's happening
-    console.log('All ratings:', ratedDates.map(r => ({ title: r.date.title, rating: r.rating })));
-    console.log('Top rated dates:', topRatedDates.map(r => ({ title: r.date.title, rating: r.rating })));
+    const topRatedDate = ratedDates
+      .sort((a, b) => b.rating - a.rating)[0];
 
     return (
       <div className={`min-h-screen bg-gradient-to-br ${theme.gradients.background} flex items-center justify-center p-4`}>
         <div className={`bg-white rounded-2xl ${theme.shadows.lg} p-8 max-w-md w-full text-center`}>
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">All Done, {displayName}!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">You got through his stupid little date list! {displayName}!</h2>
           <p className="text-gray-600 mb-6">
-            You rated {ratedDates.length} date options. Here are your top picks:
+            You rated {ratedDates.length} date options. Here&apos;s your top pick:
           </p>
           
-          {topRatedDates.length > 0 ? (
+          {topRatedDate ? (
             <div className="mb-6">
-              <h3 className="font-semibold text-gray-900 mb-3">Your Highest Rated Dates:</h3>
-              <div className="space-y-2">
-                {topRatedDates.map(({ date, rating }) => (
-                  <div key={date.id} className="bg-amber-50 rounded-lg p-3">
-                    <div className="font-medium text-gray-900">{date.title}</div>
-                    <div className="text-sm text-gray-600">{date.location}</div>
-                    <div className="text-xs text-amber-600 font-medium">Rating: {rating}%</div>
-                  </div>
-                ))}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-6 border border-amber-200">
+                <div className="text-2xl mb-2">🏆</div>
+                <div className="font-bold text-gray-900 text-lg mb-2">{topRatedDate.date.title}</div>
+                <div className="text-sm text-gray-600 mb-3">{topRatedDate.date.location}</div>
+                <div className="text-xs text-gray-700 mb-4 leading-relaxed">{topRatedDate.date.description}</div>
+                <div className="text-xs text-amber-600 font-medium">Your Rating: {topRatedDate.rating}%</div>
               </div>
             </div>
           ) : (
             <div className="mb-6">
-              <p className="text-gray-500">No dates rated above 70%. Try again!</p>
+              <p className="text-gray-500">No dates rated! Try again!</p>
             </div>
           )}
+
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-gray-600 italic">
+              💡 Please tell Amrik what you got at the end...he&apos;s too lazy to finish building it to notify this to him... although he may add it in future (I know he won&apos;t)
+            </p>
+          </div>
           
           <div className="space-y-3">
             <button
@@ -403,7 +413,7 @@ export default function PersonalDatePage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          Hey {displayName}! 👋
+          Bonjour {displayName}! 🙂‍↔️
         </motion.h1>
         <motion.p 
           className="text-gray-600"
@@ -411,15 +421,7 @@ export default function PersonalDatePage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          Rate how likely you are to try each date idea!
-        </motion.p>
-        <motion.p 
-          className="text-sm text-gray-500 mt-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          💡 Tip: You can also swipe left (0%) or right (100%) on the card
+          Move the slider left and right, you know how it rolls.
         </motion.p>
       </motion.div>
 
