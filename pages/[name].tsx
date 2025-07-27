@@ -306,8 +306,17 @@ export default function PersonalDatePage() {
 
   const handleRating = (rating: number) => {
     const currentDate = dateOptions[currentIndex];
-    console.log('Submitting rating:', { title: currentDate.title, rating });
-    setRatedDates(prev => [...prev, { date: currentDate, rating }]);
+    console.log('Submitting rating:', { 
+      title: currentDate.title, 
+      rating, 
+      currentIndex,
+      dateId: currentDate.id 
+    });
+    setRatedDates(prev => {
+      const newRatedDates = [...prev, { date: currentDate, rating }];
+      console.log('Updated ratedDates:', newRatedDates.map(r => ({ title: r.date.title, rating: r.rating })));
+      return newRatedDates;
+    });
     setCurrentIndex(prev => prev + 1);
   };
 
@@ -323,6 +332,10 @@ export default function PersonalDatePage() {
   if (currentIndex >= dateOptions.length) {
     const topRatedDate = ratedDates
       .sort((a, b) => b.rating - a.rating)[0];
+
+    // Debug: Log all ratings to console
+    console.log('All ratings:', ratedDates.map(r => ({ title: r.date.title, rating: r.rating })));
+    console.log('Top rated date:', topRatedDate);
 
     return (
       <div className={`min-h-screen bg-gradient-to-br ${theme.gradients.background} flex items-center justify-center p-4`}>
@@ -348,6 +361,21 @@ export default function PersonalDatePage() {
               <p className="text-gray-500">No dates rated! Try again!</p>
             </div>
           )}
+
+          {/* Debug section to show all ratings */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <p className="text-sm font-medium text-gray-700 mb-2">All Your Ratings (Debug):</p>
+            <div className="space-y-1 text-xs">
+              {ratedDates
+                .sort((a, b) => b.rating - a.rating)
+                .map((rated, index) => (
+                  <div key={rated.date.id} className="flex justify-between items-center">
+                    <span className="text-gray-600 truncate">{rated.date.title}</span>
+                    <span className="font-medium text-amber-600">{rated.rating}%</span>
+                  </div>
+                ))}
+            </div>
+          </div>
 
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-600 italic">
