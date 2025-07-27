@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { motion, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { Heart, X, MapPin, Clock, Users, ArrowLeft } from 'lucide-react';
@@ -72,17 +72,18 @@ const dateOptions: DateOption[] = [
 
 function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (rating: number) => void; index: number }) {
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-25, 25]);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
-  const scale = useTransform(x, [-200, 200], [0.8, 1.2]);
+  const rotate = useTransform(x, [-100, 100], [-15, 15]);
+  const opacity = useTransform(x, [-100, -50, 0, 50, 100], [0, 1, 1, 1, 0]);
+  const scale = useTransform(x, [-100, 100], [0.95, 1.05]);
   const [hasSwiped, setHasSwiped] = useState(false);
+  const [isSliderInteracting, setIsSliderInteracting] = useState(false);
 
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (info.offset.x > 100) {
+    if (info.offset.x > 50) {
       console.log('Swiped right - submitting 100%');
       setHasSwiped(true);
       onSwipe(100);
-    } else if (info.offset.x < -100) {
+    } else if (info.offset.x < -50) {
       console.log('Swiped left - submitting 0%');
       setHasSwiped(true);
       onSwipe(0);
@@ -91,10 +92,11 @@ function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (r
 
   return (
     <motion.div
-      className={`absolute w-full max-w-sm bg-white rounded-2xl ${theme.shadows.lg} overflow-hidden cursor-grab active:cursor-grabbing`}
+      className={`absolute w-full max-w-sm bg-white rounded-2xl ${theme.shadows.lg} overflow-hidden ${isSliderInteracting ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
       style={{ x, rotate, opacity, scale }}
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
+      drag={isSliderInteracting ? false : "x"}
+      dragConstraints={{ left: -100, right: 100 }}
+      dragElastic={0.1}
       onDragEnd={handleDragEnd}
       whileTap={{ scale: 0.95 }}
       initial={{ 
@@ -145,13 +147,17 @@ function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (r
           </div>
         </div>
 
-        {!hasSwiped && <DateSlider onSwipe={onSwipe} />}
+        {!hasSwiped && <DateSlider onSwipe={onSwipe} onSliderInteraction={setIsSliderInteracting} />}
       </div>
     </motion.div>
   );
 }
 
-function DateSlider({ onSwipe, swipeRating }: { onSwipe: (rating: number) => void; swipeRating?: number }) {
+function DateSlider({ onSwipe, swipeRating, onSliderInteraction }: { 
+  onSwipe: (rating: number) => void; 
+  swipeRating?: number;
+  onSliderInteraction?: (isInteracting: boolean) => void;
+}) {
   const [rating, setRating] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -170,16 +176,28 @@ function DateSlider({ onSwipe, swipeRating }: { onSwipe: (rating: number) => voi
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     setRating(value);
+    onSliderInteraction?.(true);
+  };
+
+  const handleSliderStart = () => {
+    setIsDragging(true);
+    onSliderInteraction?.(true);
   };
 
   const handleSliderEnd = () => {
     setIsDragging(false);
+    onSliderInteraction?.(false);
     if (rating >= 80) {
       setShowCelebration(true);
       setTimeout(() => setShowCelebration(false), 2000);
     }
     onSwipe(rating);
   };
+
+  // Debounced rating update to reduce re-renders
+  const debouncedRating = useMemo(() => {
+    return Math.round(rating / 5) * 5; // Round to nearest 5
+  }, [rating]);
 
   const getRatingLabel = (value: number) => {
     if (value < 20) return "Not for me";
@@ -212,13 +230,11 @@ function DateSlider({ onSwipe, swipeRating }: { onSwipe: (rating: number) => voi
       )}
       
       <div className="text-center">
-        <motion.div 
-          className={`text-lg font-semibold ${getRatingColor(rating)} mb-1`}
-          animate={{ scale: isDragging ? 1.05 : 1 }}
-          transition={{ duration: 0.2 }}
+        <div 
+          className={`text-lg font-semibold ${getRatingColor(debouncedRating)} mb-1 transition-colors duration-200`}
         >
-          {getRatingLabel(rating)}
-        </motion.div>
+          {getRatingLabel(debouncedRating)}
+        </div>
         <div className="text-sm text-gray-500">
           How likely are you to try this date?
         </div>
@@ -228,20 +244,16 @@ function DateSlider({ onSwipe, swipeRating }: { onSwipe: (rating: number) => voi
         {/* Earthy slider track */}
         <div className="relative h-3 bg-gradient-to-r from-stone-200 via-amber-200 to-amber-300 rounded-full overflow-hidden">
           <div 
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-stone-400 via-amber-400 to-amber-500 rounded-full transition-all duration-200"
-            style={{ width: `${rating}%` }}
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-stone-400 via-amber-400 to-amber-500 rounded-full transition-all duration-150 ease-out"
+            style={{ width: `${debouncedRating}%` }}
           />
           
           {/* Earthy slider thumb */}
-          <motion.div 
-            className="absolute top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white border-4 border-amber-700 rounded-full shadow-lg cursor-pointer"
-            style={{ left: `calc(${rating}% - 12px)` }}
-            whileHover={{ scale: 1.2, boxShadow: "0 10px 25px rgba(0,0,0,0.2)" }}
-            whileTap={{ scale: 0.9 }}
-            animate={{ 
-              boxShadow: isDragging 
-                ? "0 15px 35px rgba(0,0,0,0.3)" 
-                : "0 4px 15px rgba(0,0,0,0.1)" 
+          <div 
+            className="absolute top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white border-4 border-amber-700 rounded-full shadow-lg cursor-pointer transition-all duration-150 ease-out hover:scale-110 hover:shadow-xl"
+            style={{ 
+              left: `calc(${debouncedRating}% - 12px)`,
+              boxShadow: isDragging ? "0 15px 35px rgba(0,0,0,0.3)" : "0 4px 15px rgba(0,0,0,0.1)"
             }}
           />
         </div>
@@ -253,7 +265,11 @@ function DateSlider({ onSwipe, swipeRating }: { onSwipe: (rating: number) => voi
           max="100"
           value={rating}
           onChange={handleSliderChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          onMouseDown={handleSliderStart}
+          onTouchStart={handleSliderStart}
+          onMouseUp={handleSliderEnd}
+          onTouchEnd={handleSliderEnd}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
       </div>
 
@@ -265,21 +281,15 @@ function DateSlider({ onSwipe, swipeRating }: { onSwipe: (rating: number) => voi
         <span>100%</span>
       </div>
 
-      <motion.button
-        onClick={() => {
+      <button
+        onClick={useCallback(() => {
           console.log('Button clicked with rating:', rating);
           onSwipe(rating);
-        }}
-        className={`w-full bg-gradient-to-r ${theme.gradients.button} text-white py-3 rounded-lg font-medium`}
-        whileHover={{ 
-          scale: 1.02,
-          boxShadow: "0 10px 25px rgba(0,0,0,0.15)"
-        }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.2 }}
+        }, [rating, onSwipe])}
+        className={`w-full bg-gradient-to-r ${theme.gradients.button} text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]`}
       >
-        Submit Rating ({rating}%)
-      </motion.button>
+        Submit Rating ({debouncedRating}%)
+      </button>
     </div>
   );
 }
