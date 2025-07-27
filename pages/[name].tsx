@@ -80,35 +80,12 @@ const dateOptions: DateOption[] = [
           },
 ];
 
-function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (rating: number) => void; index: number }) {
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-100, 100], [-15, 15]);
-  const opacity = useTransform(x, [-100, -50, 0, 50, 100], [0, 1, 1, 1, 0]);
-  const scale = useTransform(x, [-100, 100], [0.95, 1.05]);
-  const [hasSwiped, setHasSwiped] = useState(false);
+function DateCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (rating: number) => void; index: number }) {
   const [isSliderInteracting, setIsSliderInteracting] = useState(false);
-
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (info.offset.x > 50) {
-      console.log('Swiped right - submitting 100%');
-      setHasSwiped(true);
-      onSwipe(100);
-    } else if (info.offset.x < -50) {
-      console.log('Swiped left - submitting 0%');
-      setHasSwiped(true);
-      onSwipe(0);
-    }
-  };
 
   return (
     <motion.div
-      className={`absolute w-full max-w-sm bg-white rounded-2xl ${theme.shadows.lg} overflow-hidden ${isSliderInteracting ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
-      style={{ x, rotate, opacity, scale }}
-      drag={isSliderInteracting ? false : "x"}
-      dragConstraints={{ left: -100, right: 100 }}
-      dragElastic={0.1}
-      onDragEnd={handleDragEnd}
-      whileTap={{ scale: 0.95 }}
+      className={`absolute w-full max-w-sm bg-white rounded-2xl ${theme.shadows.lg} overflow-hidden`}
       initial={{ 
         opacity: 0, 
         y: 50, 
@@ -120,6 +97,12 @@ function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (r
         y: 0, 
         scale: 1,
         rotateY: 0
+      }}
+      exit={{
+        opacity: 0,
+        y: -50,
+        scale: 0.9,
+        rotateY: -15
       }}
       transition={{ 
         duration: 0.6, 
@@ -159,7 +142,7 @@ function SwipeableCard({ date, onSwipe, index }: { date: DateOption; onSwipe: (r
           </div>
         </div>
 
-        {!hasSwiped && <DateSlider onSwipe={onSwipe} onSliderInteraction={setIsSliderInteracting} />}
+        <DateSlider onSwipe={onSwipe} onSliderInteraction={setIsSliderInteracting} />
       </div>
     </motion.div>
   );
@@ -428,7 +411,7 @@ export default function PersonalDatePage() {
       <div className="relative w-full max-w-sm h-[600px] mb-8">
         {dateOptions.slice(currentIndex, currentIndex + 2).map((date, index) => (
           <div key={date.id} className="absolute inset-0">
-            <SwipeableCard 
+            <DateCard 
               date={date} 
               onSwipe={handleRating}
               index={index}
